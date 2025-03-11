@@ -51,6 +51,8 @@ dependencies {
     implementation ("androidx.viewpager2:viewpager2:1.0.0")
     implementation ("androidx.appcompat:appcompat:1.3.1")
     implementation ("androidx.constraintlayout:constraintlayout:2.1.0")
+    implementation ("com.google.android.exoplayer:exoplayer:2.19.1")
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

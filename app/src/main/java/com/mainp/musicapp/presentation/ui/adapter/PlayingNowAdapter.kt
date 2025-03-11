@@ -5,11 +5,12 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mainp.musicapp.data.entity.Song
+import com.mainp.musicapp.databinding.ItemAlbumBinding
 import com.mainp.musicapp.databinding.ItemSongBinding
 
-class SongAdapter(
+class PlayingNowAdapter(
     private var items: List<Song> = listOf()
-) : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<PlayingNowAdapter.ViewHolder>() {
 
     class ViewHolder(var binding: ItemSongBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -19,7 +20,8 @@ class SongAdapter(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
-            )
+            ).apply {
+                root.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT}
         )
     }
 

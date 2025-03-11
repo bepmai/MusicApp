@@ -7,7 +7,6 @@ import retrofit2.http.GET
 interface ApiService {
     @GET("api.php?hotsong")
     suspend fun getSongs(): Response<List<Song>>
-//    suspend fun getSongs(): List<Song>
 
     companion object {
         fun create(): ApiService {
