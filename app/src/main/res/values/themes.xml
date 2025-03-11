@@ -18,12 +18,20 @@
         <item name="android:fontFamily">@font/roboto</item>
     </style>
 
+    <style name="font_roboto_medium" parent="base_font">
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+
     <style name="text_roboto_10" parent="font_roboto">
         <item name="android:textSize">10sp</item>
     </style>
 
-    <style name="text_roboto_14" parent="font_roboto">
+    <style name="text_roboto_medium_14" parent="font_roboto_medium">
         <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="text_roboto_medium_20" parent="font_roboto_medium">
+        <item name="android:textSize">20sp</item>
     </style>
 
     <style name="text_roboto_20" parent="font_roboto">

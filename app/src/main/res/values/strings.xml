@@ -9,6 +9,10 @@
     <string name="c">AppMusic</string>
     <string name="open_nav">Open Navigation Drawer</string>
     <string name="close_nav">Close Navigation Drawer</string>
+    <string name="title">Tên bài hát</string>
+    <string name="artists_names">Tên ca sĩ</string>
+    <string name="playing_now">Đang chơi</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
