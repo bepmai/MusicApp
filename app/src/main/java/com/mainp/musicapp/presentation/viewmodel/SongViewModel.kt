@@ -15,11 +15,6 @@ class SongViewModel(private val repository: SongRepository) : ViewModel() {
     private val _songs = MutableLiveData<List<Song>>(listOf())
     val songs: LiveData<List<Song>> get() = _songs
 
-//    fun getAllSongApi() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _songs.postValue(repository.fetchSongs())
-//        }
-//    }
     fun getAllSongApi() {
         viewModelScope.launch(Dispatchers.IO) {
             try {

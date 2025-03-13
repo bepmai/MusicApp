@@ -13,6 +13,7 @@ import com.mainp.musicapp.presentation.viewmodel.SongViewModelFactory
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import com.mainp.musicapp.presentation.ui.adapter.SongAdapter
+@androidx.media3.common.util.UnstableApi
 
 class ExploreFragment : Fragment() {
     private lateinit var binding: FragmentExploreBinding
