@@ -1,6 +1,7 @@
 package com.mainp.musicapp.presentation.ui.adapter
 
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +14,6 @@ import com.mainp.musicapp.presentation.ui.activity.DemoActivity
 
 class SongAdapter(
     private var songs: List<Song> = listOf(),
-//    private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
 
     class ViewHolder(var binding: ItemSongBinding) : RecyclerView.ViewHolder(binding.root)
@@ -42,6 +42,8 @@ class SongAdapter(
                 putExtra("artist", song.artist)
                 putExtra("imageUrl", song.thumbnail)
                 putExtra("songUrl", song.path)
+                putExtra("position", position)
+                Log.d("SongAdapter", "Clicked song: ${song.title}, URL: ${song.path}")
             }
             it.context.startActivity(intent)
         }

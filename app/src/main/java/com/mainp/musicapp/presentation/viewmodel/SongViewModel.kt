@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class SongViewModel(private val repository: SongRepository) : ViewModel() {
-    private val _songs = MutableLiveData<List<Song>>(listOf())
+    private val _songs = MutableLiveData<List<Song>>()
     val songs: LiveData<List<Song>> get() = _songs
 
     private val _directSongUrl = MutableLiveData<String?>()

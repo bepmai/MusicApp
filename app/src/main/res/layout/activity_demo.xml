@@ -10,13 +10,19 @@
         android:padding="16dp">
 
         <ImageView
-            android:id="@+id/songImage"
+            android:id="@+id/ivDownl"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_downl" />
+
+        <ImageView
+            android:id="@+id/ivImage"
             android:layout_width="200dp"
             android:layout_height="200dp"
             android:scaleType="centerCrop"/>
 
         <TextView
-            android:id="@+id/songTitle"
+            android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="20sp"
@@ -24,12 +30,42 @@
             android:layout_marginTop="10dp"/>
 
         <TextView
-            android:id="@+id/songArtist"
+            android:id="@+id/tvArtist"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:textColor="#777"
             android:layout_marginBottom="20dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvCurrentTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textSize="14sp"
+                android:paddingStart="8dp"/>
+
+            <SeekBar
+                android:id="@+id/sbSeekbar"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:max="100"/>
+
+            <TextView
+                android:id="@+id/tvTotalTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0:00"
+                android:textSize="14sp"
+                android:paddingEnd="8dp"/>
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"

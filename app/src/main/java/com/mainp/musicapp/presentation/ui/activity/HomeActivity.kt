@@ -16,6 +16,9 @@ import com.mainp.musicapp.presentation.ui.fragment.LanguageFragment
 import com.mainp.musicapp.presentation.ui.fragment.MyMusicFragment
 import com.mainp.musicapp.databinding.ActivityHomeBinding
 
+@androidx.media3.common.util.UnstableApi
+
+
 class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var binding: ActivityHomeBinding
