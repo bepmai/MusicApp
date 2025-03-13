@@ -15,6 +15,9 @@ class SongViewModel(private val repository: SongRepository) : ViewModel() {
     private val _songs = MutableLiveData<List<Song>>(listOf())
     val songs: LiveData<List<Song>> get() = _songs
 
+    private val _directSongUrl = MutableLiveData<String?>()
+    val directSongUrl: LiveData<String?> get() = _directSongUrl
+
     fun getAllSongApi() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -22,6 +25,17 @@ class SongViewModel(private val repository: SongRepository) : ViewModel() {
                 _songs.postValue(songsList)
             } catch (e: Exception) {
                 Log.e("API_ERROR", "Lỗi khi gọi API: ${e.message}")
+            }
+        }
+    }
+
+    fun fetchDirectSongUrl(songUrl: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val directUrl = repository.fetchDirectSongUrl(songUrl)
+                _directSongUrl.postValue(directUrl)
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "Lỗi khi lấy link nhạc trực tiếp: ${e.message}")
             }
         }
     }

@@ -1,17 +1,20 @@
 package com.mainp.musicapp.presentation.ui.activity
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.mainp.musicapp.R
 import com.mainp.musicapp.databinding.ActivityDemoBinding
-import android.media.MediaPlayer
+import androidx.activity.viewModels
+import com.mainp.musicapp.api.ApiService
+import com.mainp.musicapp.data.repository.SongRepositoryApiImpl
+import com.mainp.musicapp.presentation.viewmodel.SongViewModel
+import com.mainp.musicapp.presentation.viewmodel.SongViewModelFactory
+
 @androidx.media3.common.util.UnstableApi
 
 class DemoActivity : AppCompatActivity() {
@@ -19,9 +22,13 @@ class DemoActivity : AppCompatActivity() {
     private var isPlaying = false
     private var isRepeat = false
     private lateinit var player: ExoPlayer
-
-    private var mediaPlayer: MediaPlayer = MediaPlayer()
-//    private var boolean isPlay = false
+    private val viewModel by viewModels<SongViewModel> {
+        SongViewModelFactory(
+            SongRepositoryApiImpl(
+                ApiService.create()
+            )
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,36 +36,25 @@ class DemoActivity : AppCompatActivity() {
 
         binding = ActivityDemoBinding.inflate(layoutInflater)
         setContentView(binding.root)
-//        https://m.vuiz.net/getlink/mp3zing/
-//        val BASE_URL = "https://m.vuiz.net/mp3zing/bai-hat/Mat-Ket-Noi-Duong-Domic/Z7E9OI09.html"
-        //        if (!songUrl.startsWith("http")) {
-//            songUrl = BASE_URL + songUrl
-//        }
+
+
         val songUrl = intent.getStringExtra("songUrl") ?: ""
-        val fullSongUrl = "https://zingmp3.vn/bai-hat/$songUrl"
-
-        Log.d("DemoActivity", "Full Song URL: $fullSongUrl")
-
-
-        val title = intent.getStringExtra("title")!!
-        val artist = intent.getStringExtra("artist")!!
-        val imageUrl = intent.getStringExtra("imageUrl")!!
-//        Log.d("DemoActivity", "Song URL: $songUrl")
-
+        val title = intent.getStringExtra("title") ?: "Unknown Title"
+        val artist = intent.getStringExtra("artist") ?: "Unknown Artist"
+        val imageUrl = intent.getStringExtra("imageUrl") ?: ""
+//        val songUrl = "https://a128-z3.zmdcdn.me/31cb17656c5146f10de0247036f2772d?authen=exp=1742007464~acl=/31cb17656c5146f10de0247036f2772d*~hmac=7328a73d6730b91c036e12b8e769f17c&fs=MHx3ZWJWNXwxMDMdUngNTmUsICdUngMjIxLjI3"
+        viewModel.fetchDirectSongUrl("https://zingmp3.vn/${songUrl}")
+        viewModel.directSongUrl.observe(this) { songUrl ->
+            if (songUrl != null) {
+                playMusic(songUrl)
+            }
+        }
 
         binding.songTitle.text = title
         binding.songArtist.text = artist
         Glide.with(this).load(imageUrl).into(binding.songImage)
 
-        player = ExoPlayer.Builder(this).build()
-        val mediaItem = MediaItem.Builder()
-            .setUri(songUrl)
-            .build()
-        player.setMediaItem(mediaItem)
-
-        player.prepare()
-        player.play()
-
+        setupPlayer(songUrl)
 
         binding.btnPlay.setOnClickListener {
             if (isPlaying) {
@@ -76,11 +72,20 @@ class DemoActivity : AppCompatActivity() {
             player.repeatMode = if (isRepeat) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
             binding.btnRepeat.setImageResource(if (isRepeat) R.drawable.ic_replay else R.drawable.ic_replay_black)
         }
+    }
+    fun playMusic(songUrl: String) {
+        setupPlayer(songUrl)
+    }
 
-//        player.addListener(object : Player.Listener {
-//            override fun onPlayerError(error: PlaybackException) {
-//                Log.e("DemoActivity", "Lỗi phát nhạc: ${error.errorCodeName} - ${error.message}")
-//            }
-//        })
+    private fun setupPlayer(songUrl: String) {
+        player = ExoPlayer.Builder(this).build()
+        val mediaItem = MediaItem.Builder()
+            .setUri(songUrl)
+            .build()
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.play()
+        isPlaying = true
+        binding.btnPlay.setImageResource(R.drawable.ic_pause)
     }
 }

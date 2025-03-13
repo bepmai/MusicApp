@@ -44,6 +44,7 @@ class ExploreFragment : Fragment() {
             songAdapter.submitList(songs)
         }
 
+
         return binding.root
     }
 }
