@@ -1,5 +1,6 @@
 package com.mainp.musicapp.presentation.ui.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -9,14 +10,14 @@ import com.mainp.musicapp.databinding.ItemAlbumBinding
 import com.mainp.musicapp.databinding.ItemSongBinding
 
 class PlayingNowAdapter(
-    private var items: List<Song> = listOf()
+    private var items: List<String>
 ) : RecyclerView.Adapter<PlayingNowAdapter.ViewHolder>() {
 
-    class ViewHolder(var binding: ItemSongBinding) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(var binding: ItemAlbumBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
-            ItemSongBinding.inflate(
+            ItemAlbumBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
@@ -27,16 +28,17 @@ class PlayingNowAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.binding.song = item
+       Log.d("PlayingNowAdapter", "Loading image: $item")
 
         Glide.with(holder.itemView.context)
-            .load(item.thumbnail)
-            .into(holder.binding.imgThumbnail)
+            .load(item)
+            .into(holder.binding.ivImgSong)
+
     }
 
     override fun getItemCount(): Int = items.size
 
-    fun submitList(newItems: List<Song>) {
+    fun updateImageList(newItems: List<String>) {
         items = newItems
         notifyDataSetChanged()
     }

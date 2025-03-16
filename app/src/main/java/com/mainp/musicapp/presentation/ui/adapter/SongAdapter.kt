@@ -8,7 +8,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.mainp.musicapp.data.entity.Song
 import com.mainp.musicapp.databinding.ItemSongBinding
-import com.mainp.musicapp.presentation.ui.activity.DemoActivity
+import com.mainp.musicapp.presentation.ui.activity.PlayingNowActivity
+
 @androidx.media3.common.util.UnstableApi
 
 
@@ -37,7 +38,7 @@ class SongAdapter(
             .into(holder.binding.imgThumbnail)
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(it.context, DemoActivity::class.java).apply {
+            val intent = Intent(it.context, PlayingNowActivity::class.java).apply {
                 putExtra("title", song.title)
                 putExtra("artist", song.artist)
                 putExtra("imageUrl", song.thumbnail)

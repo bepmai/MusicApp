@@ -1,5 +1,6 @@
 package com.mainp.musicapp.presentation.ui.fragment
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,9 @@ import com.mainp.musicapp.presentation.viewmodel.SongViewModel
 import com.mainp.musicapp.presentation.viewmodel.SongViewModelFactory
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.mainp.musicapp.data.entity.Song
 import com.mainp.musicapp.presentation.ui.adapter.SongAdapter
 @androidx.media3.common.util.UnstableApi
 

@@ -7,18 +7,14 @@
         android:orientation="vertical"
         android:id="@+id/main"
         android:gravity="center"
+        android:background="@color/white"
         android:padding="16dp">
 
         <ImageView
-            android:id="@+id/ivDownl"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_downl" />
-
-        <ImageView
             android:id="@+id/ivImage"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_marginTop="-50dp"
             android:scaleType="centerCrop"/>
 
         <TextView
@@ -77,6 +73,7 @@
                 android:id="@+id/btnPrev"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_marginStart="50dp"
                 android:src="@drawable/ic_next_left"
                 android:background="?attr/selectableItemBackground"/>
 
