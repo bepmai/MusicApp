@@ -26,20 +26,21 @@ import com.mainp.musicapp.presentation.viewmodel.SongViewModel
 import com.mainp.musicapp.presentation.viewmodel.SongViewModelFactory
 import android.app.DownloadManager
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.widget.Toast
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import java.io.File
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
+import com.mainp.musicapp.data.repository.FavoriteSongRepositoryImpl
+import com.mainp.musicapp.data.room.AppDatabase
 
-
+@androidx.media3.common.util.UnstableApi
 
 class PlayingNowActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPlayingNowBinding
@@ -53,8 +54,9 @@ class PlayingNowActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val viewModel by viewModels<SongViewModel> {
         SongViewModelFactory(
-            SongRepositoryApiImpl(
-                ApiService.create()
+            SongRepositoryApiImpl(ApiService.create()),
+            FavoriteSongRepositoryImpl(
+                AppDatabase.getDatabase(this).favoriteSongDao()
             )
         )
     }
@@ -109,6 +111,13 @@ class PlayingNowActivity : AppCompatActivity() {
         viewModel.songs.observe(this) { songs ->
             songList = songs
             setupCurrentSong()
+
+            val currentSong = songList.getOrNull(currentIndex) ?: return@observe
+            val isFavorite = viewModel.favoriteSongs.value?.any { it.id == currentSong.id } ?: false
+            currentSong.isFavorite = isFavorite
+            binding.ivHeart.setImageResource(
+                if (isFavorite) R.drawable.ic_heart_red else R.drawable.ic_heart_grey
+            )
         }
 
         binding.ivNext.setOnClickListener { nextSong() }
@@ -151,6 +160,16 @@ class PlayingNowActivity : AppCompatActivity() {
             downloadAndSaveSong(song)
         }
 
+        binding.ivHeart.setOnClickListener {
+            val currentSong = songList.getOrNull(currentIndex) ?: return@setOnClickListener
+            viewModel.toggleFavorite(currentSong)
+
+            val isFavorite = !currentSong.isFavorite
+            currentSong.isFavorite = isFavorite
+            binding.ivHeart.setImageResource(
+                if (isFavorite) R.drawable.ic_heart_red else R.drawable.ic_heart_grey
+            )
+        }
     }
 
     class ZoomOutPageTransformer : ViewPager2.PageTransformer {
@@ -306,6 +325,7 @@ class PlayingNowActivity : AppCompatActivity() {
         editor.putString("songList", updatedJson)
         editor.apply()
     }
+
     private fun checkPermissionAndDownload(url: String, title: String) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -320,6 +340,7 @@ class PlayingNowActivity : AppCompatActivity() {
             downloadSong(url, title)
         }
     }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -329,5 +350,27 @@ class PlayingNowActivity : AppCompatActivity() {
         }
     }
 
+    private fun addToFavorites(song: Song) {
+        val sharedPreferences = getSharedPreferences("FavoriteSongs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        val gson = Gson()
+        val json = sharedPreferences.getString("songList", "[]")
+        val type = object : TypeToken<MutableList<Song>>() {}.type
+        val songList: MutableList<Song> = gson.fromJson(json, type)
+
+        if (!songList.any { it.id == song.id }) {
+            songList.add(song)
+        } else {
+            Toast.makeText(this, "Bài hát đã có trong danh sách yêu thích!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val updatedJson = gson.toJson(songList)
+        editor.putString("songList", updatedJson)
+        editor.apply()
+
+        Toast.makeText(this, "Đã thêm vào danh sách yêu thích!", Toast.LENGTH_SHORT).show()
+    }
 
 }

@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="20dp"
-    tools:context=".presentation.ui.fragment.FavoriteSongFragment">
-
-    <TextView
-        style="@style/text_roboto_bold_40"
+<layout>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/favorite_song" />
+        android:orientation="vertical"
+        android:padding="20dp"
+        tools:context=".presentation.ui.fragment.FavoriteSongFragment">
 
-</LinearLayout>
+        <TextView
+            style="@style/text_roboto_bold_40"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/favorite_song" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSongs"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/item_favorite_song"/>
+
+    </LinearLayout>
+</layout>

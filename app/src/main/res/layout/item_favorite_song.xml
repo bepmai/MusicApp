@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="favoriteSong"
+            type="com.mainp.musicapp.data.entity.FavoriteSong" />
+    </data>
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:id="@+id/itemView"
+        android:orientation="vertical">
+        <androidx.cardview.widget.CardView
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/imgThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_12new"/>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvNameSong"
+            android:layout_marginTop="10dp"
+            style="@style/text_roboto_medium_14"
+            android:text="@{favoriteSong.title}"
+            tools:text="new word" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tvMeanWord"
+            style="@style/text_roboto_10"
+            android:text="@{favoriteSong.artist}"
+            tools:text="nameArtist"
+            android:textColor="@color/blueGrey_500"
+            android:layout_marginBottom="20dp" />
+    </LinearLayout>
+</layout>

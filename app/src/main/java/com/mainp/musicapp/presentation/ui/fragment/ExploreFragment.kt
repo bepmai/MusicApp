@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import com.mainp.musicapp.api.ApiService
 import com.mainp.musicapp.data.repository.SongRepositoryApiImpl
@@ -13,9 +14,8 @@ import com.mainp.musicapp.presentation.viewmodel.SongViewModel
 import com.mainp.musicapp.presentation.viewmodel.SongViewModelFactory
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import com.mainp.musicapp.data.entity.Song
+import com.mainp.musicapp.data.repository.FavoriteSongRepositoryImpl
+import com.mainp.musicapp.data.room.AppDatabase
 import com.mainp.musicapp.presentation.ui.adapter.SongAdapter
 @androidx.media3.common.util.UnstableApi
 
@@ -25,8 +25,9 @@ class ExploreFragment : Fragment() {
 
     private val viewModel by viewModels<SongViewModel> {
         SongViewModelFactory(
-            SongRepositoryApiImpl(
-                ApiService.create()
+            SongRepositoryApiImpl(ApiService.create()),
+            FavoriteSongRepositoryImpl(
+                AppDatabase.getDatabase(requireContext()).favoriteSongDao()
             )
         )
     }

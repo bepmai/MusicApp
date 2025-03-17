@@ -4,17 +4,22 @@ import android.os.Bundle
 import android.view.MenuItem
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
 import com.mainp.musicapp.R
+import com.mainp.musicapp.api.ApiService
+import com.mainp.musicapp.data.repository.SongRepositoryApiImpl
 import com.mainp.musicapp.presentation.ui.fragment.ExploreFragment
 import com.mainp.musicapp.presentation.ui.fragment.FavoriteSongFragment
 import com.mainp.musicapp.presentation.ui.fragment.LanguageFragment
 import com.mainp.musicapp.presentation.ui.fragment.MyMusicFragment
 import com.mainp.musicapp.databinding.ActivityHomeBinding
+import com.mainp.musicapp.presentation.viewmodel.SongViewModel
+import com.mainp.musicapp.presentation.viewmodel.SongViewModelFactory
 
 @androidx.media3.common.util.UnstableApi
 

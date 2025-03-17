@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.mainp.musicapp.data.entity.FavoriteSong
 import com.mainp.musicapp.data.entity.Song
 import com.mainp.musicapp.databinding.ItemSongBinding
 import com.mainp.musicapp.presentation.ui.activity.PlayingNowActivity
