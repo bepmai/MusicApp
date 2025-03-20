@@ -34,13 +34,16 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import android.Manifest
 import android.content.pm.PackageManager
+import android.media.MediaPlayer
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
+import com.bumptech.glide.Glide
 import com.mainp.musicapp.data.entity.FavoriteSong
 import com.mainp.musicapp.data.repository.FavoriteSongRepositoryImpl
 import com.mainp.musicapp.data.room.AppDatabase
+import kotlin.random.Random
 
 @androidx.media3.common.util.UnstableApi
 
@@ -50,10 +53,13 @@ class PlayingNowActivity : AppCompatActivity() {
 
     private var isPlaying = false
     private var isRepeat = false
+    private var isRandom = false
     private lateinit var player: ExoPlayer
     private var songList: ArrayList<Song> = arrayListOf()
     private var currentIndex = 0
     private val handler = Handler(Looper.getMainLooper())
+    private var currentSongIndex = 0
+
 
     private val viewModel by viewModels<SongViewModel> {
         SongViewModelFactory(
@@ -106,6 +112,9 @@ class PlayingNowActivity : AppCompatActivity() {
         binding.viewPager.clipToPadding = false
         binding.viewPager.setPadding(100, 0, 100, 0)
 
+        binding.viewPager.setCurrentItem(currentSongIndex, true)
+
+
         binding.viewPager.isUserInputEnabled = false
         val recyclerView = binding.viewPager.getChildAt(0) as RecyclerView
         recyclerView.addOnItemTouchListener(object : RecyclerView.OnItemTouchListener {
@@ -139,27 +148,23 @@ class PlayingNowActivity : AppCompatActivity() {
                 )
             }
         }
-
-        binding.ivNext.setOnClickListener { nextSong() }
-        binding.ivPrev.setOnClickListener { previousSong() }
-
         setupCurrentSong()
 
-        binding.ivPlay.setOnClickListener {
-            if (isPlaying) {
-                player.pause()
-                binding.ivPlay.setImageResource(R.drawable.ic_play_arrow_filled)
-            } else {
-                player.play()
-                binding.ivPlay.setImageResource(R.drawable.ic_pause)
-            }
-            isPlaying = !isPlaying
+        binding.ivHeart.setOnClickListener {
+            val currentSong = songList.getOrNull(currentIndex) ?: return@setOnClickListener
+            viewModel.toggleFavorite(currentSong)
+
+            val isFavorite = !currentSong.isFavorite
+            currentSong.isFavorite = isFavorite
+            binding.ivHeart.setImageResource(
+                if (isFavorite) R.drawable.ic_heart_red else R.drawable.ic_heart_grey
+            )
         }
 
         binding.ivReplay.setOnClickListener {
             isRepeat = !isRepeat
             player.repeatMode = if (isRepeat) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
-            binding.ivReplay.setImageResource(if (isRepeat) R.drawable.ic_replay else R.drawable.ic_replay_black)
+            binding.ivReplay.setImageResource(if (isRepeat) R.drawable.ic_replay_black else R.drawable.ic_replay)
 
             Log.d("MUSIC_PLAYER", "Repeat mode: ${if (isRepeat) "ON" else "OFF"}")
         }
@@ -177,21 +182,21 @@ class PlayingNowActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
-        binding.ivDownl.setOnClickListener {
-            val song = songList[currentIndex]
-            downloadAndSaveSong(song)
+        binding.ivNext.setOnClickListener { nextSong() }
+
+        binding.ivPrev.setOnClickListener { previousSong() }
+
+        binding.ivPlay.setOnClickListener {
+            if (isPlaying) {
+                player.pause()
+                binding.ivPlay.setImageResource(R.drawable.ic_play_arrow_filled)
+            } else {
+                player.play()
+                binding.ivPlay.setImageResource(R.drawable.ic_pause)
+            }
+            isPlaying = !isPlaying
         }
 
-        binding.ivHeart.setOnClickListener {
-            val currentSong = songList.getOrNull(currentIndex) ?: return@setOnClickListener
-            viewModel.toggleFavorite(currentSong)
-
-            val isFavorite = !currentSong.isFavorite
-            currentSong.isFavorite = isFavorite
-            binding.ivHeart.setImageResource(
-                if (isFavorite) R.drawable.ic_heart_red else R.drawable.ic_heart_grey
-            )
-        }
     }
 
     class ZoomOutPageTransformer : ViewPager2.PageTransformer {
@@ -274,24 +279,6 @@ class PlayingNowActivity : AppCompatActivity() {
         }
     }
 
-    private fun nextSong() {
-        if (songList.isNotEmpty()) {
-            currentIndex = (currentIndex + 1) % songList.size
-            setupCurrentSong()
-        } else {
-            Log.e("PlayingNowActivity", "Danh sách bài hát rỗng, không thể chuyển bài!")
-        }
-    }
-
-    private fun previousSong() {
-        if (songList.isNotEmpty()) {
-            currentIndex = if (currentIndex - 1 < 0) songList.size - 1 else currentIndex - 1
-            setupCurrentSong()
-        } else {
-            Log.e("PlayingNowActivity", "Danh sách bài hát rỗng, không thể quay lại!")
-        }
-    }
-
     private val updateSeekBar = object : Runnable {
         override fun run() {
             if (::player.isInitialized && player.isPlaying) {
@@ -309,37 +296,21 @@ class PlayingNowActivity : AppCompatActivity() {
         return String.format("%d:%02d", minutes, seconds)
     }
 
-    private fun downloadAndSaveSong(song: Song) {
-        viewModel.fetchDirectSongUrl("https://zingmp3.vn/${song.path}")
-
-        viewModel.directSongUrl.observe(this) { directUrl ->
-            if (!directUrl.isNullOrBlank()) {
-                downloadSong(directUrl, song.title)
-            } else {
-                Log.e("DOWNLOAD_ERROR", "Không lấy được URL bài hát để tải!")
-            }
+    private fun nextSong() {
+        if (songList.isNotEmpty()) {
+            currentIndex = (currentIndex + 1) % songList.size
+            setupCurrentSong()
+        } else {
+            Log.e("PlayingNowActivity", "Danh sách bài hát rỗng, không thể chuyển bài!")
         }
     }
 
-    private fun downloadSong(url: String, title: String) {
-        val request = DownloadManager.Request(Uri.parse(url))
-            .setTitle(title)
-            .setDescription("Đang tải nhạc...")
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setDestinationInExternalPublicDir(Environment.DIRECTORY_MUSIC, "$title.mp3")
-
-        val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-        downloadManager.enqueue(request)
-
-        Toast.makeText(this, "Bắt đầu tải bài hát: $title", Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Quyền được cấp! Hãy thử tải lại nhạc.", Toast.LENGTH_SHORT).show()
+    private fun previousSong() {
+        if (songList.isNotEmpty()) {
+            currentIndex = if (currentIndex - 1 < 0) songList.size - 1 else currentIndex - 1
+            setupCurrentSong()
         } else {
-            Toast.makeText(this, "Cần cấp quyền để tải nhạc!", Toast.LENGTH_SHORT).show()
+            Log.e("PlayingNowActivity", "Danh sách bài hát rỗng, không thể quay lại!")
         }
     }
 }

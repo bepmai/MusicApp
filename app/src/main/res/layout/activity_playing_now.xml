@@ -22,6 +22,7 @@
                 android:id="@+id/ivExit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
                 android:src="@drawable/ic_exit"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -123,11 +124,6 @@
                     android:layout_marginEnd="20dp"
                     android:src="@drawable/ic_replay" />
 
-                <ImageView
-                    android:id="@+id/ivRandom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_radom_grey" />
             </LinearLayout>
 
             <LinearLayout
