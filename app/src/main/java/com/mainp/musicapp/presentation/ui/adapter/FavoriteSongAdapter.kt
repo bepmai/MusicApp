@@ -18,6 +18,11 @@ import com.mainp.musicapp.presentation.ui.activity.PlayingNowActivity
 class FavoriteSongAdapter(
     private var favoriteSongs: List<FavoriteSong> = listOf(),
 ) : RecyclerView.Adapter<FavoriteSongAdapter.ViewHolder>() {
+    private var onItemClickListener: ((FavoriteSong) -> Unit)? = null
+
+    fun setOnItemClickListener(listener: (FavoriteSong) -> Unit) {
+        onItemClickListener = listener
+    }
 
     class ViewHolder(var binding: ItemFavoriteSongBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -40,6 +45,11 @@ class FavoriteSongAdapter(
         Glide.with(holder.itemView.context)
             .load(favoriteSong.thumbnail)
             .into(holder.binding.imgThumbnail)
+
+        holder.itemView.setOnClickListener {
+            onItemClickListener?.invoke(favoriteSong)
+            Log.d("FavoriteSongAdapter", "Clicked song: ${favoriteSong.title}, URL: ${favoriteSong.path}")
+        }
     }
 
     override fun getItemCount(): Int = favoriteSongs.size
@@ -47,5 +57,9 @@ class FavoriteSongAdapter(
     fun submitList(newItems: List<FavoriteSong>) {
         favoriteSongs = newItems
         notifyDataSetChanged()
+    }
+
+    fun getCurrentFavoriteSongs(): List<FavoriteSong> {
+        return favoriteSongs
     }
 }

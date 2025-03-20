@@ -2,6 +2,7 @@ package com.mainp.musicapp.data.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(tableName = "favorite_songs")
 data class FavoriteSong(
@@ -11,4 +12,4 @@ data class FavoriteSong(
     val thumbnail: String,
     val path: String,
     val duration: Int
-)
+): Serializable

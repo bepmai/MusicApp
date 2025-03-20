@@ -13,9 +13,16 @@ import com.mainp.musicapp.data.repository.SongRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SongViewModel(private val repository: SongRepository, private val favoriteSongRepository: FavoriteSongRepository) : ViewModel() {
+class SongViewModel(
+    private val repository: SongRepository,
+    private val favoriteSongRepository: FavoriteSongRepository
+) : ViewModel() {
     private val _songs = MutableLiveData<List<Song>>()
     val songs: LiveData<List<Song>> get() = _songs
+
+    private val _currentSong = MutableLiveData<Song?>()
+    val currentSong: LiveData<Song?> get() = _currentSong
+
 
     private val _directSongUrl = MutableLiveData<String?>()
     val directSongUrl: LiveData<String?> get() = _directSongUrl
@@ -42,6 +49,11 @@ class SongViewModel(private val repository: SongRepository, private val favorite
                 Log.e("API_ERROR", "Lỗi khi lấy link nhạc trực tiếp: ${e.message}")
             }
         }
+    }
+
+    fun setCurrentSong(song: Song) {
+        Log.d("SongViewModel", "Cập nhật currentSong: ${song.title}, URL: ${song.path}")
+        _currentSong.postValue(song)
     }
 
     fun toggleFavorite(song: Song) {

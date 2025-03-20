@@ -36,7 +36,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.viewpager2.widget.CompositePageTransformer
+import androidx.viewpager2.widget.MarginPageTransformer
+import com.mainp.musicapp.data.entity.FavoriteSong
 import com.mainp.musicapp.data.repository.FavoriteSongRepositoryImpl
 import com.mainp.musicapp.data.room.AppDatabase
 
@@ -49,9 +51,10 @@ class PlayingNowActivity : AppCompatActivity() {
     private var isPlaying = false
     private var isRepeat = false
     private lateinit var player: ExoPlayer
-    private var songList: List<Song> = emptyList()
+    private var songList: ArrayList<Song> = arrayListOf()
     private var currentIndex = 0
     private val handler = Handler(Looper.getMainLooper())
+
     private val viewModel by viewModels<SongViewModel> {
         SongViewModelFactory(
             SongRepositoryApiImpl(ApiService.create()),
@@ -61,29 +64,47 @@ class PlayingNowActivity : AppCompatActivity() {
         )
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         binding = ActivityPlayingNowBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        currentIndex = intent.getIntExtra("position", 0)
-        val songUrl = intent.getStringExtra("songUrl") ?: ""
-        val title = intent.getStringExtra("title") ?: "Unknown Title"
-        val artist = intent.getStringExtra("artist") ?: "Unknown Artist"
-        val imageUrl = intent.getStringExtra("imageUrl") ?: ""
+        songList = intent.getSerializableExtra("SONG_LIST") as? ArrayList<Song> ?: arrayListOf()
+        val favoriteSong: FavoriteSong? = intent.getSerializableExtra("FAVORITE_SONG") as? FavoriteSong
+        currentIndex = intent.getIntExtra("CURRENT_INDEX", 0)
 
-        binding.tvTitle.text = title
-        binding.tvArtist.text = artist
+        if (songList.isNotEmpty() && currentIndex in songList.indices) {
+            viewModel.setCurrentSong(songList[currentIndex])
+        } else if (favoriteSong != null) {
+            val songFromFavorite = Song(
+                id = favoriteSong.id,
+                title = favoriteSong.title,
+                artist = favoriteSong.artist,
+                thumbnail = favoriteSong.thumbnail,
+                path = favoriteSong.path,
+                duration = favoriteSong.duration
+            )
+            viewModel.setCurrentSong(songFromFavorite)
+        } else {
+            Log.e("PlayingNowActivity", "No song available! Closing activity.")
+            finish()
+            return
+        }
 
-        adapter = PlayingNowAdapter(listOf(imageUrl))
+
+        val thumbnails = songList.map { it.thumbnail }
+        adapter = PlayingNowAdapter(thumbnails)
+
+        Log.d("PlayingNowActivity", "Danh sách ảnh: ${songList.map { it.thumbnail }}")
+
         binding.viewPager.adapter = adapter
         binding.viewPager.offscreenPageLimit = 3
         binding.viewPager.setPageTransformer(ZoomOutPageTransformer())
         binding.viewPager.clipChildren = false
         binding.viewPager.clipToPadding = false
         binding.viewPager.setPadding(100, 0, 100, 0)
-
 
         binding.viewPager.isUserInputEnabled = false
         val recyclerView = binding.viewPager.getChildAt(0) as RecyclerView
@@ -97,31 +118,32 @@ class PlayingNowActivity : AppCompatActivity() {
             override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
         })
 
-        viewModel.fetchDirectSongUrl("https://zingmp3.vn/${songUrl}")
-        viewModel.directSongUrl.observe(this) { directUrl ->
-            if (!directUrl.isNullOrBlank()) {
-                playMusic(directUrl)
-                Log.e("PLAYER_ERROR", "lấy được URL bài đầu tiên!${directUrl}")
-            } else {
-                Log.e("PLAYER_ERROR", "Không lấy được URL bài đầu tiên!")
+        viewModel.currentSong.observe(this) { currentSong ->
+            if (currentSong != null) {
+                binding.tvTitle.text = currentSong.title
+                binding.tvArtist.text = currentSong.artist
+
+                viewModel.fetchDirectSongUrl("https://zingmp3.vn/${currentSong.path}")
+                viewModel.directSongUrl.observe(this) { directUrl ->
+                    if (!directUrl.isNullOrBlank()) {
+                        playMusic(directUrl)
+                        Log.e("PLAYER_ERROR", "Lấy được URL bài hát: $directUrl")
+                    } else {
+                        Log.e("PLAYER_ERROR", "Không lấy được URL bài hát!")
+                    }
+                }
+
+                val isFavorite = viewModel.favoriteSongs.value?.any { it.id == currentSong.id } ?: false
+                binding.ivHeart.setImageResource(
+                    if (isFavorite) R.drawable.ic_heart_red else R.drawable.ic_heart_grey
+                )
             }
-        }
-
-        viewModel.getAllSongApi()
-        viewModel.songs.observe(this) { songs ->
-            songList = songs
-            setupCurrentSong()
-
-            val currentSong = songList.getOrNull(currentIndex) ?: return@observe
-            val isFavorite = viewModel.favoriteSongs.value?.any { it.id == currentSong.id } ?: false
-            currentSong.isFavorite = isFavorite
-            binding.ivHeart.setImageResource(
-                if (isFavorite) R.drawable.ic_heart_red else R.drawable.ic_heart_grey
-            )
         }
 
         binding.ivNext.setOnClickListener { nextSong() }
         binding.ivPrev.setOnClickListener { previousSong() }
+
+        setupCurrentSong()
 
         binding.ivPlay.setOnClickListener {
             if (isPlaying) {
@@ -228,43 +250,45 @@ class PlayingNowActivity : AppCompatActivity() {
 
     private fun setupCurrentSong() {
         if (songList.isNotEmpty() && currentIndex in songList.indices) {
-            val previousIndex = if (currentIndex > 0) currentIndex - 1 else currentIndex
-            val nextIndex = if (currentIndex < songList.size - 1) currentIndex + 1 else currentIndex
+            val song = songList[currentIndex]
+            Log.d("PlayingNowActivity", "Phát bài: ${song.title}")
 
-            val songImages = listOf(
-                songList[previousIndex].thumbnail,
-                songList[currentIndex].thumbnail,
-                songList[nextIndex].thumbnail
-            )
+            binding.tvTitle.text = song.title
+            binding.tvArtist.text = song.artist
+            adapter = PlayingNowAdapter(listOf(song.thumbnail))
+            binding.viewPager.adapter = adapter
 
-            adapter.updateImageList(songImages)
-            binding.viewPager.setCurrentItem(1, false)
+            viewModel.setCurrentSong(song)
 
-            binding.tvTitle.text = songList[currentIndex].title
-            binding.tvArtist.text = songList[currentIndex].artist
-
-            viewModel.fetchDirectSongUrl("https://zingmp3.vn/${songList[currentIndex].path}")
+            viewModel.fetchDirectSongUrl("https://zingmp3.vn/${song.path}")
             viewModel.directSongUrl.observe(this) { directUrl ->
                 if (!directUrl.isNullOrBlank()) {
                     playMusic(directUrl)
+                    Log.e("PLAYER_ERROR", "Lấy được URL bài hát: $directUrl")
                 } else {
-                    Log.e("PLAYER_ERROR", "Không lấy được URL phát nhạc!")
+                    Log.e("PLAYER_ERROR", "Không lấy được URL bài hát!")
                 }
             }
+        } else {
+            Log.e("PlayingNowActivity", "Danh sách bài hát trống hoặc chỉ số không hợp lệ!")
         }
     }
 
     private fun nextSong() {
-        if (songList.isNotEmpty() && currentIndex < songList.size - 1) {
-            currentIndex++
+        if (songList.isNotEmpty()) {
+            currentIndex = (currentIndex + 1) % songList.size
             setupCurrentSong()
+        } else {
+            Log.e("PlayingNowActivity", "Danh sách bài hát rỗng, không thể chuyển bài!")
         }
     }
 
     private fun previousSong() {
-        if (songList.isNotEmpty() && currentIndex > 0) {
-            currentIndex--
+        if (songList.isNotEmpty()) {
+            currentIndex = if (currentIndex - 1 < 0) songList.size - 1 else currentIndex - 1
             setupCurrentSong()
+        } else {
+            Log.e("PlayingNowActivity", "Danh sách bài hát rỗng, không thể quay lại!")
         }
     }
 
@@ -310,37 +334,6 @@ class PlayingNowActivity : AppCompatActivity() {
         Toast.makeText(this, "Bắt đầu tải bài hát: $title", Toast.LENGTH_SHORT).show()
     }
 
-    private fun saveSongToOfflineList(song: Song) {
-        val sharedPreferences = getSharedPreferences("OfflineMusic", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-
-        val gson = Gson()
-        val json = sharedPreferences.getString("songList", "[]")
-        val type = object : TypeToken<MutableList<Song>>() {}.type
-        val songList: MutableList<Song> = gson.fromJson(json, type)
-
-        songList.add(song)
-
-        val updatedJson = gson.toJson(songList)
-        editor.putString("songList", updatedJson)
-        editor.apply()
-    }
-
-    private fun checkPermissionAndDownload(url: String, title: String) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                == PackageManager.PERMISSION_GRANTED) {
-                downloadSong(url, title)
-            } else {
-                ActivityCompat.requestPermissions(
-                    this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1001
-                )
-            }
-        } else {
-            downloadSong(url, title)
-        }
-    }
-
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -349,28 +342,4 @@ class PlayingNowActivity : AppCompatActivity() {
             Toast.makeText(this, "Cần cấp quyền để tải nhạc!", Toast.LENGTH_SHORT).show()
         }
     }
-
-    private fun addToFavorites(song: Song) {
-        val sharedPreferences = getSharedPreferences("FavoriteSongs", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-
-        val gson = Gson()
-        val json = sharedPreferences.getString("songList", "[]")
-        val type = object : TypeToken<MutableList<Song>>() {}.type
-        val songList: MutableList<Song> = gson.fromJson(json, type)
-
-        if (!songList.any { it.id == song.id }) {
-            songList.add(song)
-        } else {
-            Toast.makeText(this, "Bài hát đã có trong danh sách yêu thích!", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val updatedJson = gson.toJson(songList)
-        editor.putString("songList", updatedJson)
-        editor.apply()
-
-        Toast.makeText(this, "Đã thêm vào danh sách yêu thích!", Toast.LENGTH_SHORT).show()
-    }
-
 }

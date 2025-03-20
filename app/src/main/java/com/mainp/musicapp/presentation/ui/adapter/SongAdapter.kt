@@ -18,6 +18,12 @@ class SongAdapter(
     private var songs: List<Song> = listOf(),
 ) : RecyclerView.Adapter<SongAdapter.ViewHolder>() {
 
+    private var onItemClickListener: ((Song) -> Unit)? = null
+
+    fun setOnItemClickListener(listener: (Song) -> Unit) {
+        onItemClickListener = listener
+    }
+
     class ViewHolder(var binding: ItemSongBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -39,15 +45,8 @@ class SongAdapter(
             .into(holder.binding.imgThumbnail)
 
         holder.itemView.setOnClickListener {
-            val intent = Intent(it.context, PlayingNowActivity::class.java).apply {
-                putExtra("title", song.title)
-                putExtra("artist", song.artist)
-                putExtra("imageUrl", song.thumbnail)
-                putExtra("songUrl", song.path)
-                putExtra("position", position)
-                Log.d("SongAdapter", "Clicked song: ${song.title}, URL: ${song.path}")
-            }
-            it.context.startActivity(intent)
+            onItemClickListener?.invoke(song)
+            Log.d("SongAdapter", "Clicked song: ${song.title}, URL: ${song.path}")
         }
     }
 
@@ -56,5 +55,9 @@ class SongAdapter(
     fun submitList(newItems: List<Song>) {
         songs = newItems
         notifyDataSetChanged()
+    }
+
+    fun getCurrentSongs(): List<Song> {
+        return songs
     }
 }

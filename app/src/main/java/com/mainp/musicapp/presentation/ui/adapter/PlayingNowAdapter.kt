@@ -28,7 +28,8 @@ class PlayingNowAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-       Log.d("PlayingNowAdapter", "Loading image: $item")
+
+        Log.d("PlayingNowAdapter", "Đang tải ảnh: $item")
 
         Glide.with(holder.itemView.context)
             .load(item)
@@ -37,9 +38,4 @@ class PlayingNowAdapter(
     }
 
     override fun getItemCount(): Int = items.size
-
-    fun updateImageList(newItems: List<String>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
 }
